@@ -1,8 +1,12 @@
 /* eslint-disable react-hooks/rules-of-hooks */
+import { AuthenicationProvider } from '@/authProvider';
 import { signIn } from 'next-auth/react';
-import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import React, { useContext, useState } from 'react';
 import { FaGithub } from 'react-icons/fa';
 import {FcGoogle} from 'react-icons/fc';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 
 function SignInModal({ isOpen, onClose }) {
@@ -30,32 +34,49 @@ function SignInModal({ isOpen, onClose }) {
       // console.log(formData);
       onFormDataReceived(formData);
       onClose()
-    };
+    };   
 
-    const BACKEND_URL=process.env.BACKEND_URL;
-    const loginNow=async()=>{
-      let res=await fetch(`${BACKEND_URL}/auth/signIn`,{
-        method:"POST",
+    const {userData,userState,setUserData,setUserState,userStatus,setUserStatus,BACKEND_URL} =useContext(AuthenicationProvider);
+
+    const router=useRouter();
+
+    const loginNow = async () => {
+      let res = await fetch(`${BACKEND_URL}/auth/signIn`, {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body:JSON.stringify({
-          'email':formData.email,
-          'password':formData.password
-        })
-      })
-      let status=res.status;
-      res=await res.json();
-      console.log(res.token,status)
-      document.cookie = `token=${res.token}; user=${true} path=/;`;
-    }
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
+      let status = res.status;
+      res = await res.json();
+      if (status === 200) {
+        setUserState(true);
+        setUserStatus('authenticated'); 
+        toast.success(res.message);
+        setTimeout(() => {
+          router.push("/home");
+          onClose(); 
+        }, 2000);
+        localStorage.setItem('userStatus', 'authenticated');
+        localStorage.setItem('token', res.token);
+      } else if (status === 402) {
+        toast.error(res.message);
+      }
+    };
+    
 
   const handleTabChange = (tabNumber) => {
     setSelectedTab(tabNumber);
   };
 
+
   return (
     <div className='fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm flex justify-center items-center sm:w-full'>
+              <ToastContainer />
         <div className='w-full sm:w-[80%] md:w-[70%] lg:w-[50%] xl:w-[40%]'>
           <div className='bg-white p-4 sm:p-2 md:p-2 lg:p-4 xl:p-4 rounded-xl items-center'>
             <h1 className='text-2xl text-center font-bold'>Login / Sign Up</h1>
@@ -66,7 +87,7 @@ function SignInModal({ isOpen, onClose }) {
                   className={`cursor-pointer  p-2 ${
                     selectedTab === 1 ? 'text-white rounded text-xl  bg-slate-600 w-[260px] text-center' : 'text-white rounded text-xl  bg-gray-300 w-[260px] text-center'
                   }`}
-                  onClick={() => handleTabChange(1)}
+                  onClick={() => loginNow()}
                 >
                   Login
                 </li>

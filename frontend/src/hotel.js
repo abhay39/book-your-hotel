@@ -50,3 +50,11 @@ export const hotels=[
         price:999999,
     },
 ]
+
+export const userBookings = [
+    { id: 1, inDate: '2023-09-25',outDate: '2023-09-25', venue: 'Venue A',price:1500 },
+    { id: 2, inDate: '2023-09-25',outDate: '2023-09-25', venue: 'Venue A',price:1500 },
+    { id: 3, inDate: '2023-09-25',outDate: '2023-09-25', venue: 'Venue A',price:1500 }
+    // Add more booking data here
+  ];
+  
